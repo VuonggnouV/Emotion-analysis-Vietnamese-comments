@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Comment Social Prediction</title>
+    <style>
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #eceff1;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        h1, h2 {
+            color: #607d8b;
+        }
+        .container {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        textarea, input[type="submit"], input[type="file"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        input[type="submit"] {
+            background-color: #607d8b;
+            color: white;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        input[type="submit"]:hover {
+            background-color: #78909c;
+        }
+        .result {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .result h2 {
+            margin: 0;
+        }
+        .import-button, .speech-button {
+            background-color: #607d8b;
+            color: white;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+            border-radius: 4px;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Comment Social Prediction</h1>
+    <div class="container">
+        <form id="prediction-form">
+            <label for="feedback">Enter Comment:</label>
+            <textarea name="feedback" id="feedback" cols="30" rows="5"></textarea>
+            <div>
+                <input type="submit" value="Predict">
+                <button class="import-button" onclick="showFileInput()">Import File</button>
+            </div>
+        </form>
+    </div>
+    <div class="result">
+        <h2>Prediction Result:</h2>
+        <p id="prediction-result"></p>
+    </div>
+    <script>
+        document.getElementById("prediction-form").addEventListener("submit", function (event) {
+            event.preventDefault();
+            predictComment();
+        });
+
+        function predictComment() {
+            const comment = document.getElementById("feedback").value;
+
+            fetch("/predict_sentiment", {
+                method: "POST",
+                body: JSON.stringify({ comment: comment }),
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    const resultElement = document.getElementById("prediction-result");
+                    resultElement.textContent = "Predicted Emotion: " + data.emotion;
+                })
+                .catch((error) => {
+                    console.error("Error:", error);
+                });
+        }
+
+        function showFileInput() {
+            const fileInput = document.createElement("input");
+            fileInput.type = "file";
+            fileInput.accept = ".txt";
+            fileInput.style.display = "none";
+            fileInput.addEventListener("change", function () {
+                const file = fileInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (event) {
+                        const fileContent = event.target.result;
+                        document.getElementById("feedback").value += "\n" + fileContent;
+                    };
+                    reader.readAsText(file);
+                }
+            });
+
+            document.body.appendChild(fileInput);
+            fileInput.click();
+        }
+    </script>
+</body>
+</html>
